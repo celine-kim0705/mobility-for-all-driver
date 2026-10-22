@@ -101,7 +101,10 @@ export function DropScreen({ nav, onFinish }: { nav: NavProps; onFinish: (issue:
 
   useInterval(
     () => {
-      if (typing) return;
+      // 포커스 이벤트를 놓칠 수 있어 매 초 실제 포커스를 확인한다
+      const isTyping = document.activeElement?.id === "dp-etc-text";
+      if (isTyping !== typing) setTyping(isTyping);
+      if (isTyping) return;
       const n = autoLeft - 1;
       setAutoLeft(n);
       if (n <= 0) finish();

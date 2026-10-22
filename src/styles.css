@@ -284,3 +284,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);ou
 .go-actions a,.go-actions button{min-height:56px;border-radius:12px;background:var(--chip);font-size:18px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--fg);text-decoration:none}
 .phone{margin-top:12px;font-size:16px;color:var(--muted);text-align:center;user-select:all}
 .offline{background:#3a3d44;color:var(--fg);font-size:15px;text-align:center;padding-block:8px;padding-left:var(--gx);padding-right:var(--gxr)}
+
+/* 주 버튼이 있는 하단 영역은 화면 아래에 고정 (한 화면 한 버튼, 위치 고정) */
+.view > .sheet, .view > .nr-foot, .view > .rd-sheet{position:sticky;bottom:0;z-index:5}
+.view > .nr-foot{background:var(--bg)}
