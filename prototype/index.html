@@ -1,0 +1,1246 @@
+<title>UD택시 기사 근무 시작</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: 한 화면 한 버튼 — 위는 늘어나는 여백 + 인사, 아래는 고정 하단 시트와 전체 폭 주 버튼 */
+:root{
+  --bg:#111214; --sheet:#24262b; --chip:#33363c; --line:#34373d;
+  --fg:#ffffff; --muted:#9ea3ab; --accent:#4c8dff; --on-accent:#0b0d10;
+  --warn:#f5c451; --ok:#3ecf8e; --danger:#ff6b6b; --scrim:rgba(0,0,0,.6); --tag:#1e3a66;
+  --font:"Pretendard","Noto Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --gx:max(24px, env(safe-area-inset-left,0px));
+  --gxr:max(24px, env(safe-area-inset-right,0px));
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body.big{zoom:1.12}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:10px}
+.view{min-height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto;position:relative}
+.view[hidden]{display:none!important}
+
+/* 상단 메뉴 */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding-block:14px;padding-left:var(--gx);padding-right:var(--gxr);min-height:52px}
+.topbar .left{font-size:18px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:8px}
+.topbar nav{display:flex;gap:24px}
+.topbar nav button{font-size:20px;font-weight:500;position:relative;min-height:44px;min-width:44px}
+.dot{position:absolute;top:6px;right:-8px;width:8px;height:8px;border-radius:50%;background:var(--warn)}
+.back{font-size:20px;font-weight:500;min-height:44px;display:flex;align-items:center;gap:6px}
+.grow{flex:1 0 0;min-height:16px}
+
+/* 인사 */
+.hello{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding-left:var(--gx);padding-right:var(--gxr)}
+.hello .name{font-size:clamp(32px,11vw,40px);font-weight:700;color:var(--accent)}
+.hello .sub{font-size:clamp(22px,7.6vw,28px);font-weight:500;text-wrap:balance}
+.hello .meta{margin-top:10px;font-size:18px;color:var(--muted)}
+
+/* 공지 */
+.notice{display:flex;justify-content:space-between;align-items:center;width:100%;border-top:1px solid var(--line);padding-block:16px;padding-left:var(--gx);padding-right:var(--gxr);color:var(--muted);text-align:left;gap:12px}
+.notice span:first-child{font-size:18px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notice span:last-child{font-size:28px;line-height:1}
+
+/* 하단 시트 */
+.sheet{background:var(--sheet);border-radius:24px 24px 0 0;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:32px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.kind{font-size:17px;font-weight:500;color:var(--muted)}
+.plate{font-size:36px;font-weight:700;margin-top:6px;letter-spacing:-.5px}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.chip{background:var(--chip);border-radius:10px;padding:10px 14px;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.guide{margin-top:16px;font-size:19px;font-weight:500;line-height:1.4;color:var(--warn);text-wrap:balance}
+.guide.ok{color:var(--ok)}
+.primary{margin-top:24px;width:100%;min-height:85px;border-radius:16px;background:var(--accent);color:var(--on-accent);font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:transform .1s,opacity .2s}
+.primary:active{transform:scale(.98)}
+.primary:disabled{opacity:.35;cursor:not-allowed}
+.primary.danger{background:var(--danger)}
+.sub-link{margin-top:14px;font-size:17px;color:var(--muted);text-decoration:underline;text-underline-offset:4px;min-height:36px}
+
+/* 대기(D10) 상태 버튼 */
+.states{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-top:24px}
+.states button{min-height:85px;border-radius:16px;background:var(--chip);font-size:19px;font-weight:600;line-height:1.3;padding:8px}
+.states button.end{color:var(--danger)}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--chip)}
+.pill i{width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.pill.paused i{background:var(--muted)}
+#wait-pill:not(.paused) i{animation:live 1.4s ease-in-out infinite}
+@keyframes live{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(62,207,142,.6)}50%{opacity:.35;box-shadow:0 0 0 6px rgba(62,207,142,0)}}
+.pill.blocked i{background:var(--danger)}
+
+/* 오버레이 시트 */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.panel{width:100%;max-width:520px;max-height:88%;overflow:auto;background:var(--sheet);border-radius:24px 24px 0 0;padding-top:28px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));animation:up .25s ease-out}
+.panel h2{margin:0 0 6px;font-size:26px;font-weight:700}
+.panel .lead{margin:0 0 18px;font-size:18px;color:var(--muted);line-height:1.45}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+@keyframes fade{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* 점검 항목 */
+.check{border-top:1px solid var(--line);padding-block:16px;display:flex;flex-direction:column;gap:10px}
+.check .t{font-size:21px;font-weight:600}
+.check .d{font-size:16px;color:var(--muted)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{min-height:56px;border-radius:12px;background:var(--chip);font-size:19px;font-weight:600;border:2px solid transparent}
+.seg button[aria-pressed="true"].good{border-color:var(--ok);color:var(--ok)}
+.seg button[aria-pressed="true"].bad{border-color:var(--danger);color:var(--danger)}
+.reasons{display:flex;flex-direction:column;gap:8px}
+.reasons button{min-height:64px;border-radius:14px;background:var(--chip);font-size:21px;font-weight:600;text-align:left;padding:0 18px;border:2px solid transparent;display:flex;justify-content:space-between;align-items:center}
+.reasons button[aria-pressed="true"]{border-color:var(--danger)}
+.reasons button[aria-pressed="true"]::after{content:"선택됨";font-size:15px;color:var(--danger)}
+.ghost{width:100%;margin-top:10px;min-height:56px;border-radius:14px;font-size:19px;font-weight:600;color:var(--muted)}
+
+/* 알림·메뉴 목록 */
+.list{display:flex;flex-direction:column}
+.item{border-top:1px solid var(--line);padding-block:16px;display:flex;flex-direction:column;gap:4px;text-align:left;width:100%}
+.item .tag{font-size:14px;font-weight:600;color:var(--accent);letter-spacing:.04em}
+.item .tag.warn{color:var(--warn)}
+.item .tt{font-size:19px;font-weight:600;line-height:1.4}
+.item .tm{font-size:15px;color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);padding-block:16px;font-size:19px;width:100%;text-align:left;min-height:64px}
+.row .v{color:var(--muted);font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.switch{width:56px;height:32px;border-radius:999px;background:var(--chip);position:relative;flex:none}
+.switch::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:var(--muted);transition:transform .2s}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{transform:translateX(24px);background:var(--fg)}
+
+/* 공지 상세 */
+.article{flex:1;overflow:auto;padding-left:var(--gx);padding-right:var(--gxr);padding-block:8px 32px}
+.article h1{font-size:26px;font-weight:700;line-height:1.35;margin:8px 0 6px;text-wrap:balance}
+.article .tm{font-size:16px;color:var(--muted);margin-bottom:20px}
+.article p,.article li{font-size:19px;line-height:1.6;color:#d9dce1}
+.article ol{padding-left:22px}
+.article strong{color:var(--warn);font-weight:600}
+
+/* 토스트 */
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--chip);color:var(--fg);font-size:17px;font-weight:600;padding:12px 18px;border-radius:12px;z-index:40;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.4);animation:fade .2s}
+/* 새 호출 */
+.call-top{display:flex;flex-direction:column;gap:10px;padding-block:10px 6px;padding-left:var(--gx);padding-right:var(--gxr)}
+.call-top .line{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.call-top .line span:first-child{font-size:22px}
+.timer{font-size:28px;color:var(--warn);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;border-radius:3px;background:var(--warn);transform-origin:left;transition:transform 1s linear}
+.urgent .timer{color:var(--danger);animation:blink 1s steps(2) infinite}
+.urgent .bar i{background:var(--danger)}
+@keyframes blink{50%{opacity:.45}}
+.call-body{display:flex;flex-direction:column;align-items:flex-start;padding-top:28px;padding-left:var(--gx);padding-right:var(--gxr)}
+.ptag{background:var(--tag);color:var(--accent);font-size:17px;font-weight:600;padding:6px 12px;border-radius:8px}
+.lbl{font-size:18px;font-weight:500;color:var(--muted);margin-top:20px}
+.from{font-size:clamp(30px,10vw,36px);font-weight:700;line-height:1.3;margin-top:4px;text-wrap:balance}
+.dist{font-size:22px;font-weight:600;color:var(--accent);margin-top:8px;font-variant-numeric:tabular-nums}
+.addr{font-size:16px;font-weight:500;color:var(--muted);margin-top:4px;line-height:1.4}
+.hr{height:1px;background:var(--line);width:100%;margin-top:22px}
+.hr + .lbl{margin-top:22px}
+.to{font-size:28px;font-weight:700;margin-top:4px}
+.sheet.left{align-items:stretch;text-align:left;padding-top:24px}
+.sheet.left .chips{justify-content:flex-start;margin-top:0}
+.memo{margin-top:16px;font-size:20px;font-weight:600;color:var(--warn);line-height:1.4}
+.go-top .eta{color:var(--accent)}
+.go-top .bar i{background:var(--accent);transform:scaleX(0)}
+.go-sub{display:flex;justify-content:space-between;font-size:17px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.go-top.near .eta,.go-top.near #go-state{color:var(--ok)}
+.go-top.near .bar i{background:var(--ok)}
+/* 출발 전 확인 */
+.ck-head{display:flex;flex-direction:column;gap:10px;padding-top:12px;padding-left:var(--gx);padding-right:var(--gxr)}
+.ck-head h1{margin:0;font-size:clamp(30px,10vw,36px);font-weight:700;line-height:1.3}
+.ck-head p{margin:0;font-size:19px;font-weight:500;color:var(--warn)}
+.ck-head p.done{color:var(--ok)}
+.ck-list{list-style:none;margin:0;padding-top:28px;padding-left:var(--gx);padding-right:var(--gxr)}
+.ck-step{display:flex;gap:16px;align-items:flex-start}
+.ck-mark{display:flex;flex-direction:column;align-items:center;flex:none}
+.ck-dot{width:36px;height:36px;border-radius:50%;border:2px solid #6b7079;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--on-accent)}
+.ck-line{width:2px;height:40px;background:var(--line)}
+.ck-step:last-child .ck-line{display:none}
+.ck-text{display:flex;flex-direction:column;gap:4px;padding-top:4px}
+.ck-text .t{font-size:22px;font-weight:500;color:var(--muted)}
+.ck-text .d{font-size:16px;font-weight:500;color:#6b7079}
+.ck-step.done .ck-dot{background:var(--accent);border-color:var(--accent)}
+.ck-step.done .ck-dot::after{content:"✓"}
+.ck-step.done .ck-line{background:var(--accent)}
+.ck-step.done .t,.ck-step.now .t{color:var(--fg);font-weight:600}
+.ck-step.done .d{color:var(--muted)}
+.ck-step.now .ck-dot{border-color:var(--accent)}
+.ck-step.now .ck-dot::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite}
+.ck-step.now .d{color:var(--accent);font-weight:600}
+@keyframes pulse{50%{transform:scale(.6);opacity:.6}}
+.ck-go:disabled{opacity:1;background:var(--chip);color:#6b7079}
+
+/* 운행 중 */
+.ck-head p.rd-eta{color:var(--accent);font-variant-numeric:tabular-nums}
+.rd-body{display:flex;flex-direction:column;gap:12px;padding-top:20px;padding-left:var(--gx);padding-right:var(--gxr)}
+.rd-msg{background:var(--tag);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;animation:up .25s ease-out}
+.rd-msg .k{font-size:16px;font-weight:500;color:var(--accent)}
+.rd-msg .m{font-size:20px;font-weight:600;line-height:1.4}
+.rd-msg.sent{background:var(--sheet)}
+.rd-msg.sent .k{color:var(--ok)}
+.rd-nav{background:var(--sheet);border-radius:16px;min-height:170px;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center}
+.rd-nav span{font-size:20px;font-weight:600;color:var(--muted)}
+.rd-nav .chip{color:var(--fg);text-decoration:none}
+.rd-pay{background:var(--sheet);border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;animation:up .25s ease-out}
+.pay-row{display:flex;align-items:center;gap:10px;width:100%;flex-wrap:wrap}
+.pay-auto{font-size:16px;font-weight:500;color:var(--muted)}
+.pay-load{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:var(--accent);white-space:nowrap}
+.spin{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--chip);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rd-pay .amt{font-size:36px;font-weight:700;font-variant-numeric:tabular-nums}
+.rd-to{display:flex;flex-direction:column;gap:6px;padding-top:4px}
+.rd-to .to,.rd-to .addr{margin-top:0}
+.rd-state{background:var(--sheet);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:16px;font-weight:500;color:var(--muted)}
+.rd-state i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.rd-state.on i{background:var(--ok);animation:pulse 1.2s ease-in-out infinite}
+.rd-state.on{color:var(--fg)}
+.rd-sheet{background:var(--sheet);display:flex;flex-direction:column;gap:10px;padding-top:20px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.rd-q{font-size:17px;font-weight:500;color:var(--muted)}
+.rd-replies{display:flex;gap:8px}
+.rd-replies button{flex:1;min-width:0;min-height:68px;border-radius:10px;background:var(--chip);font-size:20px;font-weight:600;padding:0 6px}
+.rd-replies button:active{background:var(--accent);color:var(--on-accent)}
+.rd-sheet .primary{margin-top:6px}
+
+/* 하차 */
+.muted-p{color:var(--muted)!important}
+.dp-body{display:flex;flex-direction:column;padding-top:16px;padding-left:var(--gx);padding-right:var(--gxr)}
+.ck-list.sm{padding:4px 0 0}
+.ck-list.sm .ck-step{gap:14px}
+.ck-list.sm .ck-dot{width:32px;height:32px;font-size:16px}
+.ck-list.sm .ck-line{height:22px}
+.ck-list.sm .t{font-size:20px}
+.ck-list.sm .d{font-size:14px}
+.ck-list.sm .ck-text{gap:2px}
+.ck-list.sm .ck-step.now .ck-dot::after{width:10px;height:10px}
+.dp-fare{margin-top:16px;background:var(--sheet);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.dp-fare .k{font-size:17px;font-weight:500;color:var(--muted)}
+.dp-fare .amt{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
+.dp-fare .pay-row{margin-top:4px}
+.pay-load .ico{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--on-accent);font-style:normal}
+.pay-load.ok{color:var(--ok)}
+.pay-load.ok .ico{background:var(--ok)}
+.pay-load.ok .ico::after{content:"✓"}
+.pay-load.fail{color:var(--danger)}
+.pay-load.fail .ico{background:var(--danger)}
+.pay-load.fail .ico::after{content:"!"}
+.pay-fail{margin-top:8px;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.pay-fail p{margin:0;font-size:17px;line-height:1.5;color:var(--fg)}
+.pay-fail p b{color:var(--danger);font-weight:600}
+.pay-direct{min-height:56px;border-radius:12px;background:var(--warn);color:var(--on-accent);font-size:19px;font-weight:700}
+.dp-q{margin-top:18px;font-size:19px;font-weight:600}
+.dp-chips{display:flex;gap:8px;margin-top:10px}
+.dp-chips button{flex:1;min-width:0;min-height:52px;border-radius:10px;background:var(--chip);font-size:16px;font-weight:600;padding:0 4px;border:2px solid transparent}
+.dp-write{margin-top:8px;width:100%;min-height:52px;border-radius:10px;background:var(--chip);font-size:16px;font-weight:600;border:2px solid transparent}
+.dp-write[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.dp-etc{margin-top:10px;display:flex;flex-direction:column}
+#dp-etc-text{width:100%;font:inherit;font-size:18px;color:var(--fg);background:var(--sheet);border:2px solid var(--line);border-radius:12px;padding:12px 14px;resize:none}
+#dp-etc-text:focus{outline:none;border-color:var(--accent)}
+.dp-etc-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
+.dp-save{min-height:48px;padding:0 22px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-size:17px;font-weight:700}
+.dp-save:disabled{background:var(--chip);color:#6b7079;cursor:not-allowed}
+.dp-saved{margin-top:10px;background:var(--sheet);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+.dp-saved .k{font-size:14px;font-weight:600;color:var(--ok)}
+.dp-saved .v{grid-column:1;font-size:17px;line-height:1.4;min-width:0;overflow-wrap:anywhere}
+.dp-saved .dp-edit{grid-column:2;grid-row:1 / span 2;min-height:44px;padding:0 14px;border-radius:10px;background:var(--chip);font-size:16px;font-weight:600}
+.dp-cnt{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.auto-note{color:var(--accent)!important;font-weight:600!important;font-variant-numeric:tabular-nums}
+.dp-chips button[aria-checked="true"]{border-color:var(--accent);color:var(--accent)}
+
+/* 도착 · 손님 찾기 */
+.mt-body{display:flex;flex-direction:column;padding-top:24px;padding-left:var(--gx);padding-right:var(--gxr)}
+.mt-card{background:var(--sheet);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.mt-card .k{font-size:18px;font-weight:500;color:var(--muted)}
+.mt-card .who{font-size:26px;font-weight:700}
+.mt-card .chips{justify-content:flex-start;margin-top:0}
+.mt-card .where{font-size:22px;font-weight:700;line-height:1.35}
+.mt-card .near{font-size:20px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.mt-card .near.here{color:var(--ok)}
+.mt-q{margin-top:16px;font-size:18px;font-weight:500;color:var(--muted)}
+.mt-quick{margin-top:10px}
+.mt-quick button.sent{border-color:var(--ok);color:var(--ok)}
+.mt-call{margin-top:10px;width:100%;min-height:62px;border-radius:14px;border:1px solid var(--line);font-size:20px;font-weight:600}
+.mt-foot{gap:14px}
+.mt-foot p{font-size:17px}
+.mt-noride{font-size:17px;font-weight:600;color:var(--fg);min-height:32px}
+
+/* 도착 · 못 탄 이유 */
+.nr-head{display:flex;flex-direction:column;gap:10px;padding-top:12px;padding-left:var(--gx);padding-right:var(--gxr)}
+.nr-head h1{margin:0;font-size:32px;font-weight:700;line-height:1.3}
+.nr-head p{margin:0;font-size:18px;font-weight:500;color:var(--warn);font-variant-numeric:tabular-nums}
+.nr-list{display:flex;flex-direction:column;gap:10px;padding-top:24px;padding-left:var(--gx);padding-right:var(--gxr)}
+.reason{display:flex;align-items:center;gap:14px;padding:18px;border-radius:14px;background:var(--sheet);border:2px solid var(--sheet);text-align:left;width:100%}
+.reason .rx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.reason .rt{font-size:21px;font-weight:600}
+.reason .rd{font-size:15px;font-weight:500;color:var(--muted)}
+.radio{width:28px;height:28px;border-radius:50%;border:2px solid #6b7079;flex:none;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--on-accent)}
+.reason[aria-checked="true"]{border-color:var(--accent)}
+.reason[aria-checked="true"] .radio{background:var(--accent);border-color:var(--accent)}
+.reason[aria-checked="true"] .radio::after{content:"✓"}
+.nr-etc-l{display:block;font-size:16px;color:var(--muted);margin:4px 0 8px}
+#nr-etc-text{width:100%;font:inherit;font-size:19px;color:var(--fg);background:var(--sheet);border:2px solid var(--line);border-radius:12px;padding:12px 14px;resize:none}
+#nr-etc-text:focus{outline:none;border-color:var(--accent)}
+.nr-foot{display:flex;flex-direction:column;gap:12px;align-items:center;padding-top:20px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.nr-foot p{margin:0;font-size:16px;font-weight:500;color:var(--muted);text-align:center}
+.nr-btns{display:flex;gap:10px;width:100%}
+.nr-back{width:110px;flex:none;min-height:85px;border-radius:16px;background:var(--chip);font-size:22px;font-weight:700}
+.nr-btns .primary{margin-top:0;flex:1;min-width:0;font-size:24px}
+.band{font-size:17px;font-weight:600;padding-block:12px;padding-left:var(--gx);padding-right:var(--gxr);background:var(--chip)}
+.band b{color:var(--accent)}
+.go-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.go-actions a,.go-actions button{min-height:56px;border-radius:12px;background:var(--chip);font-size:18px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--fg);text-decoration:none}
+.phone{margin-top:12px;font-size:16px;color:var(--muted);text-align:center;user-select:all}
+.offline{background:#3a3d44;color:var(--fg);font-size:15px;text-align:center;padding-block:8px;padding-left:var(--gx);padding-right:var(--gxr)}
+</style>
+
+<div id="offline" class="offline" hidden>연결 끊김 — 버튼은 복구 후 전송됩니다</div>
+
+<!-- D00 근무 시작 -->
+<section class="view" id="v-start" aria-label="근무 시작">
+  <header class="topbar">
+    <span class="left">&#8203;</span>
+    <nav>
+      <button id="btn-alerts" aria-label="알림, 새 알림 있음">알림<span class="dot" id="alert-dot"></span></button>
+      <button data-open="menu">메뉴</button>
+    </nav>
+  </header>
+  <div class="grow"></div>
+  <div class="hello">
+    <div class="name"><span class="driver"></span>님</div>
+    <div class="sub">오늘도 안전하게 시작해요</div>
+  </div>
+  <div class="grow"></div>
+  <button class="notice" data-open="notice"><span>[공지] 휠체어 고정 장치 점검 안내</span><span aria-hidden="true">›</span></button>
+  <div class="sheet">
+    <div class="kind">법인택시 · UD택시</div>
+    <div class="plate">서울 33바 5521</div>
+    <div class="chips">
+      <div class="chip" id="chip-batt">배터리 81% · 220km</div>
+      <div class="chip">남은 장콜 <span class="quota">53</span>건</div>
+    </div>
+    <div class="guide" id="start-guide">슬로프와 휠체어 고정 장치를<br>확인하고 근무를 시작해 주세요.</div>
+    <button class="primary" id="btn-start">근무 시작</button>
+  </div>
+</section>
+
+<!-- D10 대기 -->
+<section class="view" id="v-wait" hidden aria-label="대기">
+  <header class="topbar">
+    <span class="left"><span class="pill" id="wait-pill"><i></i><span>배차 받는 중</span></span></span>
+    <nav>
+      <button class="btn-alerts2" data-open="alerts">알림</button>
+      <button data-open="menu">메뉴</button>
+    </nav>
+  </header>
+  <div class="grow"></div>
+  <div class="hello">
+    <div class="sub" id="wait-title" style="font-size:clamp(26px,8.6vw,32px);font-weight:700">다음 손님 기다리는 중</div>
+    <div class="meta" id="wait-meta"></div>
+  </div>
+  <div class="grow"></div>
+  <div class="sheet">
+    <div class="kind">서울 33바 5521</div>
+    <div class="chips">
+      <div class="chip">배터리 81% · 220km</div>
+      <div class="chip">남은 장콜 <span class="quota">53</span>건</div>
+    </div>
+    <div class="states" id="states">
+      <button data-state="rest">휴게</button>
+      <button data-state="general">일반 손님<br>태움</button>
+      <button data-state="end" class="end">근무 종료</button>
+    </div>
+    <button class="primary" id="btn-resume" hidden></button>
+    <button class="sub-link" data-open="report">장비 이상 신고</button>
+  </div>
+</section>
+
+<!-- 새 호출 -->
+<section class="view" id="v-call" hidden aria-label="새 호출">
+  <div class="call-top" id="call-top">
+    <div class="line"><span>새 호출</span><span class="timer" id="call-timer" aria-live="off">3:00</span></div>
+    <div class="bar" role="progressbar" aria-label="수락 남은 시간"><i id="call-bar"></i></div>
+  </div>
+  <div class="call-body">
+    <span class="ptag" id="c-tag">♿ 휠체어 손님</span>
+    <span class="lbl">출발</span>
+    <div class="from" id="c-from"></div>
+    <div class="addr" id="c-from-addr"></div>
+    <div class="dist" id="c-dist"></div>
+    <div class="hr"></div>
+    <span class="lbl">도착</span>
+    <div class="to" id="c-to"></div>
+    <div class="addr" id="c-to-addr"></div>
+  </div>
+  <div class="grow"></div>
+  <div class="sheet left">
+    <div class="chips" id="c-chips"></div>
+    <div class="memo" id="c-memo"></div>
+    <button class="primary" id="btn-accept">수락</button>
+  </div>
+</section>
+
+<!-- 수락 후: 승차지점으로 이동 -->
+<section class="view" id="v-go" hidden aria-label="출발지로 이동 중">
+  <div class="call-top go-top" id="go-top">
+    <div class="line"><span id="go-state">출발지로 이동 중</span><span class="timer eta" id="go-eta">8분</span></div>
+    <div class="bar" role="progressbar" aria-label="출발지까지 진행"><i id="go-bar"></i></div>
+    <div class="go-sub"><span id="go-left">2.1km 남음</span><span id="go-arrive-at">도착 예정 --:--</span></div>
+  </div>
+  <div class="call-body">
+    <span class="ptag">♿ 휠체어 손님</span>
+    <span class="lbl">출발</span>
+    <div class="from" id="go-from"></div>
+    <div class="addr" id="go-from-addr"></div>
+    <div class="dist" id="go-dist"></div>
+    <div class="hr"></div>
+    <span class="lbl">도착</span>
+    <div class="to" id="go-to"></div>
+    <div class="addr" id="go-to-addr"></div>
+  </div>
+  <div class="grow"></div>
+  <div class="sheet left">
+    <div class="chips" id="go-chips"></div>
+    <div class="memo" id="go-memo"></div>
+    <div class="go-actions">
+      <a id="go-map" href="#" target="_blank" rel="noopener">길 안내</a>
+      <button id="go-call">승객 연락</button>
+    </div>
+    <div class="phone" id="go-phone" hidden></div>
+    <button class="primary" id="btn-arrive">도착했어요</button>
+    <button class="sub-link" id="btn-noride" hidden style="align-self:center">못 탔어요</button>
+  </div>
+</section>
+
+<!-- 출발 전 확인 -->
+<section class="view" id="v-check" hidden aria-label="출발 전 확인">
+  <header class="topbar">
+    <span class="left">&#8203;</span>
+    <nav>
+      <button data-open="alerts">알림</button>
+      <button data-open="menu">메뉴</button>
+    </nav>
+  </header>
+  <div class="ck-head">
+    <h1>출발 전에<br>차가 확인하고 있어요</h1>
+    <p id="ck-sub">PV5가 위에서부터 차례로 확인해요</p>
+  </div>
+  <ol class="ck-list" id="ck-list" aria-live="polite"></ol>
+  <div class="grow"></div>
+  <div class="nr-foot">
+    <p id="ck-count">1 / 4 확인 중 · 다 되면 출발할 수 있어요</p>
+    <button class="primary ck-go" id="btn-depart" disabled>출발하기</button>
+  </div>
+</section>
+
+<!-- 운행 중 -->
+<section class="view" id="v-ride" hidden aria-label="운행 중">
+  <header class="topbar">
+    <span class="left">&#8203;</span>
+    <nav>
+      <button data-open="alerts">알림</button>
+      <button data-open="menu">메뉴</button>
+    </nav>
+  </header>
+  <div class="ck-head">
+    <h1 id="rd-title">운행 중</h1>
+    <p class="rd-eta" id="rd-eta">도착까지 약 15분 · 4.7km</p>
+  </div>
+  <div class="rd-body">
+    <div class="rd-msg" id="rd-msg" hidden aria-live="assertive">
+      <span class="k" id="rd-msg-k">손님 메시지</span>
+      <span class="m" id="rd-msg-m"></span>
+    </div>
+    <div class="rd-pay" id="rd-pay" hidden>
+      <span class="lbl" style="margin-top:0">결제 금액</span>
+      <span class="amt">1,500원</span>
+      <div class="pay-row">
+        <span class="chip">앱카드 결제</span>
+        <span class="pay-auto">자동으로 결제됩니다</span>
+        <span class="pay-load" role="status"><i class="spin" aria-hidden="true"></i>결제 진행 중</span>
+      </div>
+    </div>
+    <div class="rd-nav" id="rd-nav">
+      <span>카카오내비로 안내 중</span>
+      <a class="chip" id="rd-navi" href="#" target="_blank" rel="noopener">내비 열기</a>
+    </div>
+    <div class="rd-to">
+      <span class="lbl" style="margin-top:0">도착</span>
+      <span class="to" id="rd-to"></span>
+      <span class="addr" id="rd-to-addr"></span>
+    </div>
+    <div class="rd-state" id="rd-state"><i></i><span id="rd-state-t">1km 전부터 관제에 ‘곧 하차’로 보여요</span></div>
+  </div>
+  <div class="grow"></div>
+  <div class="rd-sheet">
+    <span class="rd-q" id="rd-q">손님에게 답하기</span>
+    <div class="rd-replies" id="rd-replies">
+      <button data-reply="네, 알겠어요">네, 알겠어요</button>
+      <button data-reply="곧 도착해요">곧 도착해요</button>
+    </div>
+    <button class="primary ck-go" id="btn-dropoff" hidden disabled>운행 끝내기</button>
+  </div>
+</section>
+
+<!-- 하차 -->
+<section class="view" id="v-drop" hidden aria-label="하차했어요">
+  <header class="topbar">
+    <span class="left">&#8203;</span>
+    <nav>
+      <button data-open="alerts">알림</button>
+      <button data-open="menu">메뉴</button>
+    </nav>
+  </header>
+  <div class="ck-head">
+    <h1 id="dp-title">하차 지원 중</h1>
+    <p class="muted-p" id="dp-sub">PV5가 위에서부터 차례로 확인해요</p>
+  </div>
+  <div class="dp-body">
+    <ol class="ck-list sm" id="dp-list" aria-live="polite"></ol>
+    <div class="dp-fare">
+      <span class="k">결제 금액 · <span id="dp-km">4.7km</span></span>
+      <span class="amt">1,500원</span>
+      <div class="pay-row">
+        <span class="chip" id="dp-method">앱카드 결제</span>
+        <span class="pay-auto" id="dp-auto">자동으로 결제됩니다</span>
+        <span class="pay-load" id="dp-status" role="status"><i class="spin" aria-hidden="true"></i><span>결제 진행 중</span></span>
+      </div>
+      <div class="pay-fail" id="dp-fail" hidden>
+        <p id="dp-fail-t"></p>
+        <button class="pay-direct" id="btn-direct">직접 결제하기</button>
+      </div>
+    </div>
+    <span class="dp-q">타는 데 문제 있었나요?</span>
+    <div class="dp-chips" id="dp-chips" role="radiogroup" aria-label="타는 데 문제">
+      <button role="radio" aria-checked="false" data-v="none">없었어요</button>
+      <button role="radio" aria-checked="false" data-v="mismatch">정보와 달라요</button>
+      <button role="radio" aria-checked="false" data-v="nofit">차에 안 맞아요</button>
+    </div>
+    <button class="dp-write" id="dp-write" aria-pressed="false">직접 입력하기</button>
+    <div class="dp-etc" id="dp-etc" hidden>
+      <label for="dp-etc-text" class="nr-etc-l">어떤 문제가 있었는지 짧게 적어 주세요 (정차 중에만)</label>
+      <textarea id="dp-etc-text" maxlength="60" rows="2" placeholder="예: 슬로프 각도가 가파라서 도움이 더 필요했어요"></textarea>
+      <div class="dp-etc-row">
+        <span class="dp-cnt" id="dp-cnt">0 / 60</span>
+        <button class="dp-save" id="dp-save" disabled>저장하기</button>
+      </div>
+    </div>
+    <div class="dp-saved" id="dp-saved" hidden>
+      <span class="k">저장했어요</span>
+      <span class="v" id="dp-saved-t"></span>
+      <button class="dp-edit" id="dp-edit">수정</button>
+    </div>
+  </div>
+  <div class="grow"></div>
+  <div class="nr-foot">
+    <p id="dp-foot">끝내면 빈 차로 바뀌어요</p>
+    <button class="primary ck-go" id="btn-endtrip" style="margin-top:0" disabled>운행 끝내기</button>
+  </div>
+</section>
+
+<!-- 도착 · 손님 찾기 -->
+<section class="view" id="v-meet" hidden aria-label="도착했어요">
+  <header class="topbar">
+    <span class="left">&#8203;</span>
+    <nav>
+      <button data-open="alerts">알림</button>
+      <button data-open="menu">메뉴</button>
+    </nav>
+  </header>
+  <div class="ck-head">
+    <h1>도착했어요</h1>
+    <p>손님에게 도착 알림을 보냈어요</p>
+  </div>
+  <div class="mt-body">
+    <div class="mt-card">
+      <span class="k">손님</span>
+      <span class="who" id="mt-wheel"></span>
+      <div class="chips" id="mt-chips"></div>
+      <div class="hr" style="margin-top:0"></div>
+      <span class="k">만날 곳</span>
+      <span class="where" id="mt-where"></span>
+    </div>
+    <span class="mt-q">손님에게 보내기</span>
+    <div class="dp-chips mt-quick" id="mt-quick">
+      <button data-msg="도착했어요">도착했어요</button>
+      <button data-msg="정문 앞이에요">정문 앞이에요</button>
+      <button data-msg="천천히 오세요">천천히 오세요</button>
+    </div>
+    <button class="mt-call" id="mt-call">손님에게 전화하기</button>
+    <div class="phone" id="mt-phone" hidden></div>
+  </div>
+  <div class="grow"></div>
+  <div class="nr-foot mt-foot">
+    <p>손님을 못 만났나요?&nbsp; <button class="mt-noride" id="mt-noride">못 탔어요 ›</button></p>
+    <button class="primary" id="btn-met" style="margin-top:0">손님 만났어요</button>
+  </div>
+</section>
+
+<!-- 도착 · 못 탄 이유 -->
+<section class="view" id="v-noride" hidden aria-label="손님이 못 탔나요">
+  <header class="topbar">
+    <span class="left">&#8203;</span>
+    <nav>
+      <button data-open="alerts">알림</button>
+      <button data-open="menu">메뉴</button>
+    </nav>
+  </header>
+  <div class="nr-head">
+    <h1>손님이 못 탔나요?</h1>
+    <p id="nr-waited">기다린 시간 0:00</p>
+  </div>
+  <div class="nr-list" id="nr-list" role="radiogroup" aria-label="못 탄 이유">
+    <button class="reason" role="radio" aria-checked="false" data-k="noshow"><span class="rx"><span class="rt">손님이 안 나와요</span><span class="rd">전화·메시지에 답이 없어요</span></span><span class="radio"></span></button>
+    <button class="reason" role="radio" aria-checked="false" data-k="mismatch"><span class="rx"><span class="rt">정보와 달라요</span><span class="rd">휠체어나 도움이 달라요</span></span><span class="radio"></span></button>
+    <button class="reason" role="radio" aria-checked="false" data-k="nofit"><span class="rx"><span class="rt">차에 안 맞아요</span><span class="rd">휠체어가 들어가지 않아요</span></span><span class="radio"></span></button>
+    <button class="reason" role="radio" aria-checked="false" data-k="cancel"><span class="rx"><span class="rt">손님이 취소했어요</span></span><span class="radio"></span></button>
+    <button class="reason" role="radio" aria-checked="false" data-k="etc"><span class="rx"><span class="rt">다른 이유</span></span><span class="radio"></span></button>
+    <div id="nr-etc" hidden>
+      <label for="nr-etc-text" class="nr-etc-l">이유를 짧게 적어 주세요 (정차 중에만)</label>
+      <textarea id="nr-etc-text" maxlength="40" rows="2" placeholder="예: 승차지점이 공사 중이에요"></textarea>
+    </div>
+  </div>
+  <div class="grow"></div>
+  <div class="nr-foot">
+    <p>보고하면 관제가 확인하고 운행이 끝나요</p>
+    <div class="nr-btns">
+      <button class="nr-back" id="btn-nr-back">돌아가기</button>
+      <button class="primary" id="btn-nr-send" disabled>미탑승 보고</button>
+    </div>
+  </div>
+</section>
+
+<!-- 배차 제외(장비 이상) -->
+<section class="view" id="v-blocked" hidden aria-label="장비 이상">
+  <header class="topbar">
+    <span class="left"><span class="pill blocked"><i></i><span>배차 제외</span></span></span>
+    <nav><button data-open="menu">메뉴</button></nav>
+  </header>
+  <div class="grow"></div>
+  <div class="hello">
+    <div class="sub" style="font-weight:700">장비 이상을 관제에 알렸어요</div>
+    <div class="meta" id="blocked-meta"></div>
+  </div>
+  <div class="grow"></div>
+  <div class="sheet">
+    <div class="guide">관제 안내가 올 때까지 배차를 받지 않아요.<br>수리 후 다시 점검하면 근무를 시작할 수 있어요.</div>
+    <button class="primary" id="btn-recheck">다시 점검하기</button>
+  </div>
+</section>
+
+<!-- 공지 상세 -->
+<section class="view" id="v-notice" hidden aria-label="공지">
+  <header class="topbar">
+    <button class="back" data-back><span aria-hidden="true">‹</span> 뒤로</button>
+    <span></span>
+  </header>
+  <article class="article">
+    <h1>[공지] 휠체어 고정 장치 점검 안내</h1>
+    <div class="tm">관제센터 · 10월 22일 08:30</div>
+    <p>10월 한 달 동안 휠체어 고정 장치 집중 점검을 진행합니다. 근무 시작 전에 아래 항목을 꼭 확인해 주세요.</p>
+    <ol>
+      <li>4점 고정 벨트가 끝까지 감기고 잠금 소리가 나는지</li>
+      <li>슬로프가 끝까지 펴지고 수납 후 흔들리지 않는지</li>
+      <li>승객 안전벨트 버클이 정상으로 잠기는지</li>
+    </ol>
+    <p>하나라도 이상하면 <strong>근무를 시작하지 말고 장비 이상 신고</strong>를 눌러 주세요. 신고한 날은 배차 후보에서 빠지고, 관제가 정비 일정을 안내합니다.</p>
+    <p>이 공지는 예시 문구입니다.</p>
+  </article>
+  <div class="sheet" style="border-radius:0;padding-top:16px">
+    <button class="primary" data-back style="margin-top:0">확인했어요</button>
+  </div>
+</section>
+
+<div id="layer"></div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(() => {
+  const state = {
+    driver: "강기사", quota: 53, voice: true, big: false,
+    endTime: "18:00", startedAt: null, mode: "start", prevView: "v-start",
+    checks: {}, reportReason: null, alertsRead: false, trips: 0
+  };
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const now = () => { const d = new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
+
+  try { const s = JSON.parse(localStorage.getItem("ud-pref")||"{}"); Object.assign(state, {voice: s.voice ?? true, big: !!s.big}); } catch(e){}
+  const savePref = () => { try { localStorage.setItem("ud-pref", JSON.stringify({voice:state.voice,big:state.big})); } catch(e){} };
+  document.body.classList.toggle("big", state.big);
+  $$(".driver").forEach(e => e.textContent = state.driver);
+  $$(".quota").forEach(e => e.textContent = state.quota);
+
+  function speak(text){
+    if (!state.voice || !("speechSynthesis" in window)) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ko-KR"; speechSynthesis.speak(u); } catch(e){}
+  }
+  let toastT;
+  function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=> t.hidden = true, 2600); }
+
+  function show(id){
+    const cur = $$(".view").find(v => !v.hidden);
+    if (cur && id === "v-notice") state.prevView = cur.id;
+    $$(".view").forEach(v => v.hidden = v.id !== id);
+  }
+
+  /* ---------- 레이어(아래에서 올라오는 시트) ---------- */
+  function openLayer(html, onMount){
+    const layer = $("#layer");
+    layer.innerHTML = `<div class="scrim" role="dialog" aria-modal="true"><div class="panel">${html}</div></div>`;
+    const scrim = layer.firstChild;
+    scrim.addEventListener("click", e => { if (e.target === scrim) closeLayer(); });
+    onMount && onMount(scrim.querySelector(".panel"));
+    const f = scrim.querySelector("button"); f && f.focus({preventScroll:true});
+  }
+  function closeLayer(){ $("#layer").innerHTML = ""; }
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeLayer(); });
+
+  /* ---------- 알림 ---------- */
+  const alerts = [
+    {tag:"공지", cls:"", t:"[공지] 휠체어 고정 장치 점검 안내", tm:"오늘 08:30", go:"notice"},
+    {tag:"관제", cls:"warn", t:"성동구 일대 도로 공사로 승차지점 변경 요청이 많아요. 승객 메모를 꼭 확인해 주세요.", tm:"어제 17:10"},
+    {tag:"배차", cls:"", t:"이달 남은 우선 배차는 53건이에요.", tm:"10월 20일"}
+  ];
+  function openAlerts(){
+    state.alertsRead = true; $("#alert-dot").hidden = true;
+    openLayer(`<h2>알림</h2><p class="lead">관제와 회사에서 보낸 안내예요.</p>
+      <div class="list">${alerts.map((a,i)=>`<button class="item" data-i="${i}"><span class="tag ${a.cls}">${a.tag}</span><span class="tt">${a.t}</span><span class="tm">${a.tm}</span></button>`).join("")}</div>
+      <button class="ghost" data-close>닫기</button>`, p => {
+      p.querySelectorAll(".item").forEach(b => b.onclick = () => { const a = alerts[b.dataset.i]; if (a.go === "notice"){ closeLayer(); show("v-notice"); } });
+    });
+  }
+
+  /* ---------- 메뉴 (D60 설정·오늘 기록) ---------- */
+  function openMenu(){
+    const working = state.mode === "wait";
+    openLayer(`<h2>메뉴</h2><p class="lead">${state.driver}님 · 서울 33바 5521</p>
+      <div class="list">
+        <div class="row"><span>오늘 운행</span><span class="v">${state.trips}건${state.startedAt ? " · 근무 시작 "+state.startedAt : ""}</span></div>
+        <div class="row"><span>이달 남은 우선 배차</span><span class="v">${state.quota}건</span></div>
+        <div class="row"><span>근무 종료 예정</span><span class="v">${state.endTime} · 회사 연동</span></div>
+        <button class="row" id="m-voice"><span>음성 안내</span><span class="switch" role="switch" aria-checked="${state.voice}"></span></button>
+        <button class="row" id="m-big"><span>큰 글자</span><span class="switch" role="switch" aria-checked="${state.big}"></span></button>
+        <button class="row" id="m-notice"><span>공지사항</span><span class="v">›</span></button>
+        <button class="row" id="m-report"><span style="color:var(--danger)">장비 이상 신고</span><span class="v">›</span></button>
+        ${working ? `<button class="row" id="m-end"><span>근무 종료</span><span class="v">›</span></button>` : ""}
+      </div>
+      <button class="ghost" data-close>닫기</button>`, p => {
+      p.querySelector("#m-voice").onclick = e => { state.voice = !state.voice; e.currentTarget.querySelector(".switch").setAttribute("aria-checked", state.voice); savePref(); if (state.voice) speak("음성 안내를 켰어요"); };
+      p.querySelector("#m-big").onclick = e => { state.big = !state.big; e.currentTarget.querySelector(".switch").setAttribute("aria-checked", state.big); document.body.classList.toggle("big", state.big); savePref(); };
+      p.querySelector("#m-notice").onclick = () => { closeLayer(); show("v-notice"); };
+      p.querySelector("#m-report").onclick = () => openReport();
+      const me = p.querySelector("#m-end"); if (me) me.onclick = () => openEnd();
+    });
+  }
+
+  /* ---------- 근무 시작 전 장비 점검 ---------- */
+  const items = [
+    {k:"slope", t:"슬로프", d:"끝까지 펴지고, 수납 후 흔들리지 않아요"},
+    {k:"lock",  t:"휠체어 고정 장치", d:"4점 벨트가 감기고 잠금 소리가 나요"},
+    {k:"belt",  t:"승객 안전벨트", d:"버클이 정상으로 잠겨요"}
+  ];
+  function openCheck(){
+    state.checks = {};
+    openLayer(`<h2>장비 점검</h2><p class="lead">하나씩 확인하고 결과를 눌러 주세요.</p>
+      ${items.map(it => `<div class="check" data-k="${it.k}"><div class="t">${it.t}</div><div class="d">${it.d}</div>
+        <div class="seg"><button class="good" aria-pressed="false" data-v="ok">정상</button><button class="bad" aria-pressed="false" data-v="bad">이상 있음</button></div></div>`).join("")}
+      <button class="primary" id="c-go" disabled>3개 모두 확인해 주세요</button>
+      <button class="ghost" data-close>나중에 하기</button>`, p => {
+      const go = p.querySelector("#c-go");
+      const update = () => {
+        const vals = items.map(i => state.checks[i.k]);
+        const done = vals.filter(Boolean).length;
+        const bad = items.filter(i => state.checks[i.k] === "bad");
+        go.classList.toggle("danger", bad.length > 0);
+        if (bad.length){ go.disabled = false; go.textContent = "장비 이상 신고"; }
+        else if (done === items.length){ go.disabled = false; go.textContent = "점검 완료 — 근무 시작"; }
+        else { go.disabled = true; go.textContent = `${items.length - done}개 더 확인해 주세요`; }
+      };
+      p.querySelectorAll(".check").forEach(row => row.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+        row.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+        state.checks[row.dataset.k] = b.dataset.v; update();
+      }));
+      go.onclick = () => {
+        const bad = items.find(i => state.checks[i.k] === "bad");
+        if (bad) openReport(bad.k); else startWork();
+      };
+      update();
+    });
+  }
+
+  /* ---------- 장비 이상 신고 (사유 시트) ---------- */
+  const reasons = [{k:"slope",t:"슬로프"},{k:"lock",t:"휠체어 고정 장치"},{k:"belt",t:"안전벨트"},{k:"door",t:"문"},{k:"etc",t:"기타"}];
+  function openReport(pre){
+    state.reportReason = pre || null;
+    openLayer(`<h2>장비 이상 신고</h2><p class="lead">이상이 있는 장비를 골라 주세요. 관제에 바로 알리고, 오늘은 배차 후보에서 빠져요.</p>
+      <div class="reasons">${reasons.map(r=>`<button data-k="${r.k}" aria-pressed="${r.k===pre}">${r.t}</button>`).join("")}</div>
+      <button class="primary danger" id="r-send" ${pre?"":"disabled"} style="margin-top:20px">관제에 알리기</button>
+      <button class="ghost" data-close>취소</button>`, p => {
+      const send = p.querySelector("#r-send");
+      p.querySelectorAll(".reasons button").forEach(b => b.onclick = () => {
+        p.querySelectorAll(".reasons button").forEach(x => x.setAttribute("aria-pressed", x === b));
+        state.reportReason = b.dataset.k; send.disabled = false;
+      });
+      send.onclick = () => {
+        const r = reasons.find(x => x.k === state.reportReason);
+        closeLayer(); cancelDispatch(); clearInterval(tickT); stopGo(); stopWait(); stopCheck(); stopRide(); stopDrop(); state.arrived = false; $("#btn-noride").hidden = true; state.mode = "blocked";
+        $("#blocked-meta").textContent = `${r.t} · ${now()} 신고`;
+        show("v-blocked"); speak("장비 이상을 관제에 알렸어요");
+      };
+    });
+  }
+
+  /* ---------- 근무 시작 → 대기 ---------- */
+  let wakeLock = null;
+  async function keepAwake(){ try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch(e){} }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && state.mode === "wait") keepAwake(); });
+
+  function startWork(){
+    closeLayer();
+    state.mode = "wait"; state.startedAt = now(); state.sub = null;
+    renderWait(); show("v-wait"); keepAwake();
+    speak("근무를 시작했어요. 다음 손님을 기다릴게요");
+    toast("근무를 시작했어요 · 배차 후보에 들어갔어요");
+    scheduleDispatch();
+  }
+
+  const subs = {
+    rest:    {pill:"휴게 중", title:"쉬는 중이에요", btn:"휴게 끝 — 배차 받기", say:"휴게를 시작했어요"},
+    general: {pill:"일반 손님 운행", title:"일반 손님 운행 중", btn:"일반 손님 내림 — 배차 받기", say:"일반 손님 운행 중에는 배차를 받지 않아요"}
+  };
+  function renderWait(){
+    const s = state.sub ? subs[state.sub] : null;
+    const pill = $("#wait-pill");
+    pill.classList.toggle("paused", !!s);
+    pill.querySelector("span").textContent = s ? s.pill + " · 배차 제외" : "배차 받는 중";
+    $("#wait-title").textContent = s ? s.title : "다음 손님 기다리는 중";
+    $("#wait-meta").textContent = `근무 시작 ${state.startedAt} · 종료 예정 ${state.endTime}`;
+    $("#states").hidden = !!s;
+    const r = $("#btn-resume"); r.hidden = !s; if (s) r.textContent = s.btn;
+  }
+  $$("#states button").forEach(b => b.onclick = () => {
+    const k = b.dataset.state;
+    if (k === "end") return openEnd();
+    state.sub = k; cancelDispatch(); renderWait(); speak(subs[k].say);
+  });
+  $("#btn-resume").onclick = () => { state.sub = null; renderWait(); speak("배차를 다시 받아요"); toast("다시 배차를 받아요"); scheduleDispatch(); };
+
+  function openEnd(){
+    openLayer(`<h2>근무를 마칠까요?</h2><p class="lead">오늘 운행 ${state.trips}건 · 근무 시작 ${state.startedAt}<br>근무를 마치면 배차 후보에서 빠져요.</p>
+      <button class="primary" id="e-ok" style="margin-top:4px">근무 종료</button>
+      <button class="ghost" data-close>계속 근무하기</button>`, p => {
+      p.querySelector("#e-ok").onclick = () => {
+        closeLayer(); cancelDispatch(); state.mode = "start"; state.startedAt = null; state.sub = null;
+        try { wakeLock && wakeLock.release(); } catch(e){}
+        show("v-start"); speak("근무를 마쳤어요. 수고하셨어요"); toast("근무를 마쳤어요. 수고하셨어요");
+      };
+    });
+  }
+
+  /* ---------- 새 호출: 대기 10초 후 도착 ---------- */
+  const CALL = {
+    from:["래미안베라힐즈 아파트","101동 정문 앞"], fromAddr:"서울시 은평구 통일로 630 101동",
+    dist:"2.1km · 약 8분", to:"은평 성모병원", toAddr:"은평구 통일로 1021 · 본관 정문",
+    chips:["수동 휠체어","밀어주세요","짐 2개","보호자 1명"], memo:"101동 정문 앞에서 기다려요",
+    phone:"0507-1234-5678", limit:180,
+    wheel:"수동 휠체어 · 폭 65cm", meetChips:["밀어주세요","보호자 1명"]
+  };
+  let dispatchT = null, tickT = null, left = 0;
+  function cancelDispatch(){ clearTimeout(dispatchT); dispatchT = null; }
+  function scheduleDispatch(){
+    cancelDispatch();
+    if (state.mode !== "wait" || state.sub) return;
+    dispatchT = setTimeout(() => { if (state.mode === "wait" && !state.sub) showCall(); }, 10000);
+  }
+  const fmt = s => Math.floor(s/60) + ":" + String(s%60).padStart(2,"0");
+  function showCall(){
+    closeLayer(); state.mode = "call";
+    $("#c-from").innerHTML = CALL.from.join("<br>");
+    $("#c-dist").textContent = CALL.dist;
+    $("#c-to").textContent = CALL.to;
+    $("#c-from-addr").textContent = CALL.fromAddr;
+    $("#c-to-addr").textContent = CALL.toAddr;
+    $("#c-chips").innerHTML = CALL.chips.map(c => `<div class="chip">${c}</div>`).join("");
+    $("#c-memo").textContent = `“${CALL.memo}”`;
+    left = CALL.limit; paintTimer(true);
+    show("v-call");
+    try { navigator.vibrate && navigator.vibrate([400,200,400]); } catch(e){}
+    speak(`새 호출. ${CALL.from.join(" ")}. ${CALL.chips.slice(0,2).join(", ")}. ${CALL.dist.replace("·",",")}`);
+    clearInterval(tickT);
+    tickT = setInterval(() => {
+      left--; paintTimer();
+      if (left === 10) speak("수락 시간이 10초 남았어요");
+      if (left <= 0) missCall();
+    }, 1000);
+  }
+  function paintTimer(reset){
+    const bar = $("#call-bar");
+    if (reset){ bar.style.transition = "none"; bar.style.transform = "scaleX(1)"; bar.offsetWidth; bar.style.transition = ""; }
+    else bar.style.transform = `scaleX(${Math.max(left,0)/CALL.limit})`;
+    $("#call-timer").textContent = fmt(Math.max(left,0));
+    $("#call-top").classList.toggle("urgent", left <= 10);
+  }
+  function missCall(){
+    clearInterval(tickT); state.mode = "wait";
+    renderWait(); show("v-wait");
+    speak("수락 시간이 지나 다른 기사님께 넘어갔어요");
+    toast("수락 시간이 지나 다른 기사님께 넘어갔어요");
+    scheduleDispatch();
+  }
+  /* ---------- 수락 후: 출발지로 이동 중 ----------
+     데모: 8분 거리를 6배속(약 80초)으로 줄여 보여 줌 */
+  const ROUTE = { km: 2.1, sec: 480, speed: 6 };
+  let goT = null, goElapsed = 0, goWarned = false;
+  const hm = d => String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+  function etaText(r){ return r <= 0 ? "도착" : r < 60 ? "1분 미만" : Math.ceil(r/60) + "분"; }
+  function distText(r){ const km = ROUTE.km * r / ROUTE.sec; return km >= 1 ? km.toFixed(1)+"km" : Math.round(km*1000/10)*10 + "m"; }
+  function paintGo(){
+    const r = Math.max(0, ROUTE.sec - goElapsed);
+    const top = $("#go-top");
+    $("#go-eta").textContent = etaText(r);
+    $("#go-bar").style.transform = `scaleX(${goElapsed / ROUTE.sec})`;
+    $("#go-dist").textContent = r > 0 ? `${distText(r)} · 약 ${etaText(r)} 남음` : "출발지에 도착했어요";
+    const near = r <= ROUTE.sec * 0.1 / ROUTE.km; // 100m 안
+    top.classList.toggle("near", near || r <= 0);
+    $("#go-state").textContent = r <= 0 ? "출발지 도착" : near ? "출발지 근처예요" : "출발지로 이동 중";
+    if (!goWarned && r <= 180 && r > 0){ goWarned = true; speak("출발지까지 3분 남았어요. 승객에게 곧 도착한다고 알렸어요"); toast("승객에게 ‘3분 뒤 도착’을 알렸어요"); }
+    if (r <= 0){ stopGo(); speak("출발지에 도착했어요. 승객을 받을 자리에 서면 도착했어요를 눌러 주세요"); }
+  }
+  function stopGo(){ clearInterval(goT); goT = null; }
+  $("#btn-accept").onclick = () => {
+    clearInterval(tickT); state.mode = "go"; state.arrived = false;
+    goElapsed = 0; goWarned = false;
+    const t0 = new Date();
+    $("#go-left").textContent = `수락 ${hm(t0)}`;
+    $("#go-arrive-at").textContent = `도착 예정 ${hm(new Date(t0.getTime() + ROUTE.sec*1000))}`;
+    $("#go-from").innerHTML = CALL.from.join("<br>");
+    $("#go-to").textContent = CALL.to;
+    $("#go-from-addr").textContent = CALL.fromAddr;
+    $("#go-to-addr").textContent = CALL.toAddr;
+    $("#go-chips").innerHTML = CALL.chips.map(c => `<div class="chip">${c}</div>`).join("");
+    $("#go-memo").textContent = `“${CALL.memo}”`;
+    $("#go-map").href = "https://map.kakao.com/link/search/" + encodeURIComponent(CALL.fromAddr);
+    $("#go-phone").hidden = true;
+    $("#btn-arrive").textContent = "도착했어요";
+    const bar = $("#go-bar"); bar.style.transition = "none"; paintGo(); bar.offsetWidth; bar.style.transition = "";
+    show("v-go");
+    speak(`호출을 수락했어요. ${CALL.from.join(" ")}으로 이동해 주세요`);
+    toast(`${hm(t0)} 수락 · 승객에게 알렸어요`);
+    stopGo(); goT = setInterval(() => { goElapsed += ROUTE.speed; paintGo(); }, 1000);
+  };
+  $("#go-call").onclick = () => {
+    const p = $("#go-phone"); p.hidden = false;
+    p.textContent = `안심번호 ${CALL.phone} (예시) · 정차 중에만 걸어 주세요`;
+  };
+  /* 도착 후 기다린 시간 */
+  let waitT = null, arrivedAt = 0;
+  const waited = () => fmt(Math.floor((Date.now() - arrivedAt) / 1000));
+  function paintWaited(){
+    const w = waited();
+    $("#nr-waited").textContent = `기다린 시간 ${w}`;
+  }
+  function stopWait(){ clearInterval(waitT); waitT = null; }
+  function backToWait(msg){
+    stopGo(); stopWait(); stopCheck(); stopRide(); stopDrop(); state.mode = "wait"; state.sub = null; state.arrived = false;
+    $("#btn-noride").hidden = true;
+    renderWait(); show("v-wait"); if (msg) toast(msg); scheduleDispatch();
+  }
+
+  /* ---------- 도착 · 손님 찾기 ---------- */
+  function openMeet(){
+    state.arrived = true; stopGo(); arrivedAt = Date.now(); state.mode = "meet";
+    $("#mt-wheel").textContent = CALL.wheel;
+    $("#mt-chips").innerHTML = CALL.meetChips.map(c => `<div class="chip">${c}</div>`).join("");
+    $("#mt-where").textContent = CALL.from.join(" ");
+    $$("#mt-quick button").forEach(b => { b.classList.remove("sent"); b.textContent = b.dataset.msg; });
+    $("#mt-phone").hidden = true;
+    show("v-meet");
+    stopWait();
+    waitT = setInterval(paintWaited, 1000);
+    speak("도착했어요. 손님에게 도착 알림을 보냈어요");
+  }
+  $("#btn-arrive").onclick = openMeet;
+  $$("#mt-quick button").forEach(b => b.onclick = () => {
+    b.classList.add("sent"); b.textContent = "보냄 ✓";
+    toast(`${now()} 손님에게 ‘${b.dataset.msg}’를 보냈어요`);
+    setTimeout(() => { b.classList.remove("sent"); b.textContent = b.dataset.msg; }, 2500);
+  });
+  $("#mt-call").onclick = () => {
+    const p = $("#mt-phone"); p.hidden = false;
+    p.textContent = `안심번호 ${CALL.phone} (예시) · 정차 중에만 걸어 주세요`;
+  };
+  $("#mt-noride").onclick = () => openNoRide();
+  $("#btn-met").onclick = () => openCheckRide();
+
+  /* ---------- 출발 전 확인 (PV5가 차례로 확인) ---------- */
+  const STEPS = [
+    {t:"휠체어 고정", now:"잠김 확인 중…", done:"고정 장치 4곳 잠김"},
+    {t:"안전벨트",   now:"확인 중…",     done:"손님 벨트 채움"},
+    {t:"슬로프",     now:"접는 중…",     done:"슬로프 수납 완료"},
+    {t:"모든 문",    now:"닫히는 중…",   done:"모든 문 닫힘"}
+  ];
+  let ckT = null, ckIdx = 0;
+  function stopCheck(){ clearTimeout(ckT); ckT = null; }
+  function paintCheck(){
+    $("#ck-list").innerHTML = STEPS.map((s,i) => {
+      const st = i < ckIdx ? "done" : i === ckIdx ? "now" : "wait";
+      const d = st === "done" ? s.done : st === "now" ? s.now : "기다리는 중";
+      return `<li class="ck-step ${st}"><span class="ck-mark"><span class="ck-dot"></span><span class="ck-line"></span></span><span class="ck-text"><span class="t">${s.t}</span><span class="d">${d}</span></span></li>`;
+    }).join("");
+    const all = ckIdx >= STEPS.length;
+    $("#ck-count").textContent = all ? `${STEPS.length} / ${STEPS.length} 확인 완료 · 출발할 수 있어요` : `${ckIdx+1} / ${STEPS.length} 확인 중 · 다 되면 출발할 수 있어요`;
+    const sub = $("#ck-sub");
+    sub.textContent = all ? "모든 확인이 끝났어요" : "PV5가 위에서부터 차례로 확인해요";
+    sub.classList.toggle("done", all);
+    $("#btn-depart").disabled = !all;
+  }
+  function nextStep(){
+    ckIdx++; paintCheck();
+    if (ckIdx >= STEPS.length){ speak("확인이 끝났어요. 출발할 수 있어요"); return; }
+    ckT = setTimeout(nextStep, 2500);
+  }
+  function openCheckRide(){
+    stopWait(); state.mode = "check"; ckIdx = 0; paintCheck(); show("v-check");
+    speak("탑승을 기록했어요. 차가 출발 전 확인을 시작해요");
+    stopCheck(); ckT = setTimeout(nextStep, 2500);
+  }
+  /* ---------- 운행 중 ----------
+     데모: 15분(4.7km)을 1초에 1분씩 줄여 보여 줌. 거리는 시간에 비례 */
+  const RIDE = { min: 15, km: 4.7, msgAt: 5, msg: "에어컨 좀 약하게 해주세요" };
+  const rideKm = () => RIDE.km * rdLeft / RIDE.min;
+  const kmText = k => k >= 1 ? k.toFixed(1) + "km" : Math.round(k * 100) * 10 + "m";
+  let rdT = null, rdLeft = 0, rdTick = 0, msgHideT = null, msgOpen = false;
+  let dropT = null;
+  function stopRide(){ clearInterval(rdT); rdT = null; clearTimeout(msgHideT); clearTimeout(dropT); }
+  function paintRide(){
+    const done = rdLeft <= 0;
+    $("#rd-title").textContent = done ? "목적지 도착" : "운행 중";
+    $("#rd-eta").textContent = done ? `${now()} 도착 · 하차를 도와주세요` : `도착까지 약 ${rdLeft}분 · ${kmText(rideKm())}`;
+    const near = rideKm() <= 1;
+    $("#rd-state").classList.toggle("on", near);
+    $("#rd-state-t").textContent = done ? "관제에 ‘하차 중’으로 보여요" : near ? "관제에 ‘곧 하차’로 보이고 있어요" : "1km 전부터 관제에 ‘곧 하차’로 보여요";
+    $("#btn-dropoff").hidden = !done;
+    $("#rd-q").hidden = done;
+    $("#rd-nav").hidden = done;
+    $("#rd-pay").hidden = !done;
+    $("#rd-replies").hidden = done;
+  }
+  function showMsg(text){
+    clearTimeout(msgHideT); msgOpen = true;
+    const box = $("#rd-msg"); box.classList.remove("sent"); box.hidden = false;
+    $("#rd-msg-k").textContent = "손님 메시지";
+    $("#rd-msg-m").textContent = `“${text}”`;
+    try { navigator.vibrate && navigator.vibrate(200); } catch(e){}
+    speak(`손님 메시지. ${text}`);
+  }
+  function openRide(){
+    stopCheck(); stopRide(); state.mode = "ride";
+    rdLeft = RIDE.min; rdTick = 0; msgOpen = false; state.nearSaid = false;
+    $("#rd-msg").hidden = true;
+    $("#rd-to").textContent = CALL.to; $("#rd-to-addr").textContent = CALL.toAddr;
+    $("#rd-navi").href = "https://map.kakao.com/link/search/" + encodeURIComponent(CALL.to);
+    paintRide(); show("v-ride");
+    speak(`출발합니다. ${CALL.to}까지 약 ${RIDE.min}분이에요`);
+    rdT = setInterval(() => {
+      rdTick++;
+      if (rdTick === RIDE.msgAt) showMsg(RIDE.msg);
+      if (rdLeft > 0){ rdLeft--; paintRide();
+        if (!state.nearSaid && rideKm() <= 1){ state.nearSaid = true; speak("곧 하차예요. 슬로프를 준비해 주세요"); }
+        if (rdLeft === 0){ stopRide(); speak("목적지에 도착했어요. 하차를 도와주세요"); dropT = setTimeout(openDrop, 5000); }
+      }
+    }, 1000);
+  }
+  $$(".rd-replies button").forEach(b => b.onclick = () => {
+    const text = b.dataset.reply;
+    const box = $("#rd-msg"); box.hidden = false; box.classList.add("sent");
+    $("#rd-msg-k").textContent = `${now()} 답장 보냄`;
+    $("#rd-msg-m").textContent = `“${text}”`;
+    msgOpen = false; toast(`손님에게 ‘${text}’를 보냈어요`);
+    clearTimeout(msgHideT); msgHideT = setTimeout(() => { if (!msgOpen) box.hidden = true; }, 4000);
+  });
+  /* ---------- 하차 ---------- */
+  let payT = null, dpIssue = null, payState = "loading";
+  const DSTEPS = [
+    {t:"목적지 도착", now:"위치 확인 중…", done:"위치로 확인"},
+    {t:"차가 멈췄어요", now:"주차 브레이크 확인 중…", done:"주차 브레이크 잠김"},
+    {t:"문이 열렸어요", now:"문 열림 확인 중…", done:"문 열림 신호"}
+  ];
+  let dpIdx = 0, dpStepT = null, dpNextT = null, dpNext = false;
+  let autoT = null, autoLeft = 0;
+  function stopDrop(){ clearTimeout(payT); clearTimeout(dpStepT); clearTimeout(dpNextT); clearInterval(autoT); autoT = null; }
+  const typing = () => document.activeElement === $("#dp-etc-text");
+  function startAuto(){
+    if (autoT) return;
+    autoLeft = 5; paintAuto();
+    autoT = setInterval(() => {
+      if (typing()) { paintAuto(); return; }
+      autoLeft--; paintAuto();
+      if (autoLeft <= 0){ clearInterval(autoT); autoT = null; $("#btn-endtrip").click(); }
+    }, 1000);
+  }
+  function paintAuto(){
+    const foot = $("#dp-foot");
+    foot.classList.add("auto-note");
+    foot.textContent = typing() ? "입력하는 동안은 자동 이동을 멈춰요" : `${autoLeft}초 뒤 자동으로 다음 배차를 받아요`;
+    $("#btn-endtrip").textContent = `다음 배차 받기 (${autoLeft})`;
+  }
+  function paintDrop(){
+    $("#dp-list").innerHTML = DSTEPS.map((s,i) => {
+      const st = i < dpIdx ? "done" : i === dpIdx ? "now" : "wait";
+      const d = st === "done" ? s.done : st === "now" ? s.now : "기다리는 중";
+      return `<li class="ck-step ${st}"><span class="ck-mark"><span class="ck-dot"></span><span class="ck-line"></span></span><span class="ck-text"><span class="t">${s.t}</span><span class="d">${d}</span></span></li>`;
+    }).join("");
+    const all = dpIdx >= DSTEPS.length;
+    $("#dp-title").textContent = all ? "하차했어요" : "하차 지원 중";
+    $("#dp-sub").textContent = all ? "PV5가 위에서부터 차례로 확인했어요" : "PV5가 위에서부터 차례로 확인해요";
+    updateEnd();
+  }
+  function updateEnd(){
+    const all = dpIdx >= DSTEPS.length, paid = payState === "ok";
+    const end = $("#btn-endtrip"), foot = $("#dp-foot");
+    end.textContent = dpNext ? "다음 배차 받기" : "운행 끝내기";
+    end.disabled = !(all && paid);
+    foot.classList.remove("auto-note");
+    if (dpNext && all && paid){ if (autoT) return paintAuto(); startAuto(); return; }
+    foot.textContent =
+      payState === "fail" || payState === "direct" ? "직접 결제를 받으면 운행을 끝낼 수 있어요" :
+      !all ? "하차 확인이 끝나면 운행을 끝낼 수 있어요" :
+      !paid ? "결제가 끝나면 운행을 끝낼 수 있어요" :
+      dpNext ? "누르면 빈 차로 바뀌고 다음 배차를 받아요" : "끝내면 빈 차로 바뀌어요";
+  }
+  function dropStep(){
+    dpIdx++; paintDrop();
+    if (dpIdx < DSTEPS.length){ dpStepT = setTimeout(dropStep, 2500); return; }
+    speak("하차했어요");
+    dpNextT = setTimeout(() => { dpNext = true; updateEnd(); }, 3000);
+  }
+  function openDrop(){
+    stopRide(); stopDrop(); state.mode = "drop"; dpIssue = null;
+    dpIdx = 0; dpNext = false;
+    $$("#dp-chips button").forEach(b => b.setAttribute("aria-checked", "false"));
+    $("#dp-write").setAttribute("aria-pressed", "false"); $("#dp-etc").hidden = true;
+    $("#dp-etc-text").value = ""; $("#dp-cnt").textContent = "0 / 60";
+    $("#dp-save").disabled = true; $("#dp-saved").hidden = true; dpSaved = "";
+    $("#dp-km").textContent = RIDE.km + "km";
+    setPay("loading"); paintDrop();
+    show("v-drop");
+    speak("하차 지원을 시작해요. 앱카드로 1500원을 결제하고 있어요");
+    dpStepT = setTimeout(dropStep, 2500);
+    clearTimeout(payT);
+    // 데모: 절반 확률로 결제 실패
+    payT = setTimeout(() => {
+      if (Math.random() < 0.5){
+        const why = ["카드 잔액이 부족해요", "카드사가 응답하지 않아요", "등록된 카드의 유효기간이 지났어요"];
+        setPay("fail", why[Math.floor(Math.random() * why.length)]);
+      } else setPay("ok");
+    }, 3000);
+  };
+  function setPay(st, reason){
+    const s = $("#dp-status"), lbl = s.querySelector("span"), ico = s.querySelector("i");
+    s.className = "pay-load" + (st === "ok" ? " ok" : st === "fail" ? " fail" : "");
+    ico.className = st === "loading" || st === "direct" ? "spin" : "ico";
+    payState = st;
+    $("#dp-fail").hidden = st !== "fail" && st !== "direct";
+    if (st === "loading"){
+      $("#dp-method").textContent = "앱카드 결제"; $("#dp-auto").textContent = "자동으로 결제됩니다"; lbl.textContent = "결제 진행 중";
+    } else if (st === "ok"){
+      lbl.textContent = "결제 완료"; $("#dp-auto").textContent = `${now()} 결제됐어요`;
+      speak("결제가 완료됐어요");
+    } else if (st === "fail"){
+      lbl.textContent = "결제 실패"; $("#dp-auto").textContent = "자동 결제가 안 됐어요";
+      $("#dp-fail-t").innerHTML = `<b>${reason}.</b><br>승객에게 알리고 단말기로 1,500원을 직접 받아 주세요.`;
+      const b = $("#btn-direct"); b.textContent = "직접 결제하기"; b.dataset.step = "start";
+      speak(`앱카드 결제가 실패했어요. ${reason}. 직접 결제를 받아 주세요`);
+      try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
+    } else if (st === "direct"){
+      $("#dp-method").textContent = "직접 결제"; $("#dp-auto").textContent = "단말기로 받아 주세요"; lbl.textContent = "결제 대기 중";
+      $("#dp-fail-t").innerHTML = "승객에게 단말기를 건네 카드나 현금으로 1,500원을 받은 뒤 아래 버튼을 눌러 주세요.";
+      const b = $("#btn-direct"); b.textContent = "결제 받았어요"; b.dataset.step = "confirm";
+    }
+    updateEnd();
+  }
+  $("#btn-direct").onclick = e => {
+    if (e.currentTarget.dataset.step === "confirm"){ setPay("ok"); $("#dp-auto").textContent = `${now()} 직접 결제로 받았어요`; }
+    else setPay("direct");
+  };
+  $$("#dp-chips button").forEach(b => b.onclick = () => {
+    $$("#dp-chips button").forEach(x => x.setAttribute("aria-checked", x === b));
+    dpIssue = b.dataset.v;
+    $("#dp-write").setAttribute("aria-pressed", "false"); $("#dp-etc").hidden = true; $("#dp-saved").hidden = true;
+  });
+  let dpSaved = "";
+  $("#dp-save").onclick = () => {
+    const t = $("#dp-etc-text");
+    dpSaved = t.value.trim(); if (!dpSaved) return;
+    t.blur();
+    $("#dp-saved-t").textContent = dpSaved;
+    $("#dp-etc").hidden = true; $("#dp-saved").hidden = false;
+    toast("입력한 내용을 저장했어요");
+    if (autoT) paintAuto();
+  };
+  $("#dp-edit").onclick = () => {
+    $("#dp-saved").hidden = true; $("#dp-etc").hidden = false;
+    $("#dp-etc-text").value = dpSaved; $("#dp-cnt").textContent = `${dpSaved.length} / 60`;
+    $("#dp-save").disabled = !dpSaved; $("#dp-etc-text").focus();
+  };
+  $("#dp-write").onclick = () => {
+    $$("#dp-chips button").forEach(x => x.setAttribute("aria-checked", "false"));
+    $("#dp-write").setAttribute("aria-pressed", "true");
+    dpIssue = "write";
+    if (dpSaved){ $("#dp-saved").hidden = false; $("#dp-etc").hidden = true; return; }
+    $("#dp-etc").hidden = false;
+    $("#dp-etc-text").focus();
+  };
+  $("#dp-etc-text").addEventListener("input", e => { $("#dp-cnt").textContent = `${e.target.value.length} / 60`; $("#dp-save").disabled = !e.target.value.trim(); });
+  $("#dp-etc-text").addEventListener("focus", () => { if (autoT) paintAuto(); });
+  $("#dp-etc-text").addEventListener("blur", () => { if (autoT) paintAuto(); });
+  $("#btn-endtrip").onclick = () => {
+    stopDrop(); state.trips++;
+    const typed = dpSaved || $("#dp-etc-text").value.trim();
+    const issue = dpIssue === "write" ? (typed || null) : dpIssue && dpIssue !== "none" ? $(`#dp-chips [data-v="${dpIssue}"]`).textContent : null;
+    speak("운행을 끝냈어요. 빈 차로 바뀌었어요");
+    backToWait(issue ? `운행 완료 · ‘${issue}’를 관제에 전달했어요` : `${now()} 운행 완료 · 빈 차로 바뀌었어요`);
+  };
+  $("#btn-depart").onclick = () => openRide();
+
+  /* ---------- 도착 · 못 탄 이유 ---------- */
+  let nrReason = null;
+  function openNoRide(){
+    nrReason = null; state.mode = "noride";
+    $$("#nr-list .reason").forEach(b => b.setAttribute("aria-checked", "false"));
+    $("#nr-etc").hidden = true; $("#nr-etc-text").value = "";
+    $("#btn-nr-send").disabled = true;
+    paintWaited(); show("v-noride");
+  }
+  $("#btn-noride").onclick = openNoRide;
+  $$("#nr-list .reason").forEach(b => b.onclick = () => {
+    $$("#nr-list .reason").forEach(x => x.setAttribute("aria-checked", x === b));
+    nrReason = b.dataset.k;
+    $("#nr-etc").hidden = nrReason !== "etc";
+    if (nrReason === "etc") $("#nr-etc-text").focus({preventScroll:true});
+    $("#btn-nr-send").disabled = false;
+  });
+  $("#btn-nr-back").onclick = () => { state.mode = "meet"; paintWaited(); show("v-meet"); };
+  $("#btn-nr-send").onclick = () => {
+    const b = $(`#nr-list .reason[data-k="${nrReason}"]`);
+    const label = b.querySelector(".rt").textContent;
+    const w = waited();
+    speak(`미탑승을 보고했어요. ${label}`);
+    backToWait(`${now()} 미탑승 보고 · ${label} · 기다린 시간 ${w}`);
+  };
+
+  /* ---------- 공통 연결 ---------- */
+  $("#btn-start").onclick = () => { if (!navigator.onLine) toast("연결 끊김 — 연결되면 근무 시작을 보낼게요"); openCheck(); };
+  $("#btn-recheck").onclick = () => { state.mode = "start"; show("v-start"); openCheck(); };
+  $("#btn-alerts").onclick = openAlerts;
+  document.addEventListener("click", e => {
+    const o = e.target.closest("[data-open]"); if (o){
+      const k = o.dataset.open;
+      if (k === "menu") openMenu();
+      else if (k === "alerts") openAlerts();
+      else if (k === "notice") show("v-notice");
+      else if (k === "report") openReport();
+    }
+    if (e.target.closest("[data-close]")) closeLayer();
+    if (e.target.closest("[data-back]")) show(state.prevView || "v-start");
+  });
+  const net = () => $("#offline").hidden = navigator.onLine;
+  addEventListener("online", net); addEventListener("offline", net); net();
+})();
+</script>
