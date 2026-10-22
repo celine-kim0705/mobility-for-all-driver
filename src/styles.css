@@ -288,3 +288,29 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);ou
 /* 주 버튼이 있는 하단 영역은 화면 아래에 고정 (한 화면 한 버튼, 위치 고정) */
 .view > .sheet, .view > .nr-foot, .view > .rd-sheet{position:sticky;bottom:0;z-index:5}
 .view > .nr-foot{background:var(--bg)}
+
+/* 출발지로 이동 (내비) */
+.go-view{min-height:100%;height:100%}
+.navi-banner{display:flex;align-items:center;gap:14px;background:var(--sheet);padding-block:14px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.turn-icon{flex:none}
+.nb-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.nb-big{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.nb-small{font-size:17px;font-weight:500;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.navi-map{position:relative;flex:1 1 auto;min-height:240px;background:#1b1d21}
+.navi-map-canvas{position:absolute;inset:0}
+.navi-map-msg{position:absolute;left:12px;right:12px;bottom:12px;z-index:10;background:rgba(17,18,20,.88);color:var(--fg);font-size:15px;line-height:1.4;padding:10px 12px;border-radius:10px;text-align:center}
+.map-pin{filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.map-label{background:var(--accent);color:#fff;font-weight:700;font-size:15.5px;padding:6px 12px;border-radius:8px;white-space:nowrap;box-shadow:0 2.6px 5.3px rgba(0,0,0,.3)}
+.map-car{width:26px;height:45px;filter:drop-shadow(0 2.6px 3px rgba(0,0,0,.35));transition:transform .6s linear}
+.go-sheet{background:var(--sheet);display:flex;flex-direction:column;gap:14px;padding-top:20px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.go-sum{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:17px}
+.go-sum span:first-child{font-weight:500;color:var(--muted)}
+.go-eta{font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.go-who{display:flex;flex-direction:column;gap:10px}
+.go-who .who{font-size:24px;font-weight:700}
+.go-chips{justify-content:flex-start;margin-top:0}
+.go-chips .chip{font-size:16px;padding:8px 12px}
+.go-memo{font-size:18px;font-weight:600;color:var(--warn)}
+.go-sheet .phone{margin-top:0}
+.go-sheet .nr-back{min-height:80px}
+.go-arrive{margin-top:0;flex:1;min-width:0;min-height:80px;font-size:26px}
