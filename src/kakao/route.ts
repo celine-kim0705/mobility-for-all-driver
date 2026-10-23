@@ -33,6 +33,7 @@ export interface Route {
 export const FALLBACK = {
   start: { lat: 37.5889, lng: 126.9436 }, // 홍제역 부근 — 기사 현재 위치 예시
   pickup: { lat: 37.6025, lng: 126.9343 }, // 녹번동 래미안베라힐즈 부근
+  dest: { lat: 37.634, lng: 126.9165 }, // 은평 성모병원 부근
 };
 
 const R = 6371000;

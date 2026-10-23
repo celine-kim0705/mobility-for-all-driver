@@ -39,7 +39,7 @@ export const CALL: CallInfo = {
 export const TIMING = {
   dispatchDelay: 10_000,
   acceptLimit: 180,
-  route: { km: 2.1, sec: 480, speed: 6 },
+  route: { km: 2.1, sec: 480, speed: 32 }, // 480/32 ≈ 15초 — 목적지 이동 데모와 비슷한 속도
   ride: { min: 15, km: 4.7, msgAt: 5, msg: "에어컨 좀 약하게 해주세요" },
   dropAfterArrive: 5_000,
   stepGap: 2_500,

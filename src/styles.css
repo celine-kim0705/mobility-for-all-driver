@@ -314,3 +314,14 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);ou
 .go-sheet .phone{margin-top:0}
 .go-sheet .nr-back{min-height:80px}
 .go-arrive{margin-top:0;flex:1;min-width:0;min-height:80px;font-size:26px}
+
+/* 운행 중 (내비) 하단 시트 */
+.ride-msg{display:flex;flex-direction:column;gap:6px;animation:up .25s ease-out}
+.ride-msg .k{font-size:13px;font-weight:700;color:var(--accent)}
+.ride-msg.sent .k{color:var(--ok)}
+.ride-msg .m{font-size:20px;font-weight:700;line-height:1.35}
+.ride-replies{display:flex;gap:8px}
+.ride-replies button{flex:0 0 auto;min-height:0;padding:8px 12px;border-radius:10px;background:var(--chip);font-size:16px;font-weight:600}
+.ride-replies button:active{background:var(--accent);color:var(--on-accent)}
+.ride-note{font-size:14px;font-weight:600;color:var(--muted)}
+.ride-note.on{color:var(--ok)}

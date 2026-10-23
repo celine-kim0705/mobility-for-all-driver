@@ -178,7 +178,7 @@ export default function App() {
       case "checkRide":
         return <CheckRideScreen nav={nav} onDepart={() => setScreen("ride")} />;
       case "ride":
-        return <RideScreen nav={nav} onArrived={() => setScreen("drop")} />;
+        return <RideScreen onArrived={() => setScreen("drop")} />;
       case "drop":
         return <DropScreen nav={nav} onFinish={finishTrip} />;
     }
