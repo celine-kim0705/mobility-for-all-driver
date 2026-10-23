@@ -1,6 +1,6 @@
 /* Layout: 한 화면 한 버튼 — 위는 늘어나는 여백 + 인사, 아래는 고정 하단 시트와 전체 폭 주 버튼 */
 :root{
-  --bg:#111214; --sheet:#24262b; --chip:#33363c; --line:#34373d;
+  --bg:#111214; --frame:#3a3d44; --sheet:#24262b; --chip:#33363c; --line:#34373d;
   --fg:#ffffff; --muted:#9ea3ab; --accent:#4c8dff; --on-accent:#0b0d10;
   --warn:#f5c451; --ok:#3ecf8e; --danger:#ff6b6b; --scrim:rgba(0,0,0,.6); --tag:#1e3a66;
   --font:"Pretendard","Noto Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -12,12 +12,12 @@ html,body,#root{height:100%}
 body{margin:0}
 [hidden]{display:none!important}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{background:var(--bg);color:var(--fg);font-family:var(--font);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body{background:var(--frame);color:var(--fg);font-family:var(--font);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
 body.big{zoom:1.12}
 *{box-sizing:border-box}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:10px}
-.view{min-height:100%;display:flex;flex-direction:column;max-width:440px;margin:0 auto;position:relative}
+.view{min-height:100%;display:flex;flex-direction:column;max-width:440px;margin:0 auto;position:relative;background:var(--bg)}
 .view[hidden]{display:none!important}
 
 /* 상단 메뉴 */
