@@ -1,5 +1,6 @@
 import { DRIVER } from "../data";
 import { StatusPill, TopBar } from "../components/TopBar";
+import { addHours } from "../util";
 import type { NavProps, SubState } from "./types";
 
 const SUBS = {
@@ -29,7 +30,7 @@ export function WaitScreen({ nav, sub, startedAt, onSub, onResume, onEnd, onRepo
           {s ? s.title : "다음 손님 기다리는 중"}
         </div>
         <div className="meta">
-          근무 시작 {startedAt} · 종료 예정 {DRIVER.endTime}
+          근무 시작 {startedAt} · 종료 예정 {startedAt ? addHours(startedAt, DRIVER.workHours) : DRIVER.endTime}
         </div>
       </div>
       <div className="grow" />

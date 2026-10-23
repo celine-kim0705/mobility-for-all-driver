@@ -3,6 +3,12 @@ const pad = (n: number) => String(n).padStart(2, "0");
 /** 13:05 형식 */
 export const hm = (d: Date = new Date()) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
+/** "HH:MM" 문자열에 시간을 더한다 (자정 넘김 처리) */
+export const addHours = (hhmm: string, hours: number) => {
+  const [h, m] = hhmm.split(":").map(Number);
+  return `${pad((h + hours) % 24)}:${pad(m)}`;
+};
+
 /** 초 → 3:05 형식 */
 export const mss = (sec: number) => `${Math.floor(sec / 60)}:${pad(Math.max(0, sec) % 60)}`;
 

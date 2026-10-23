@@ -6,7 +6,9 @@ export const DRIVER = {
   plate: "서울 33바 5521",
   battery: "배터리 81% · 220km",
   quota: 53,
-  endTime: "18:00",
+  workHours: 8, // 근무 시간 — 종료 예정 = 시작 + 8시간
+  endTime: "18:00", // 근무 시작 전 기본 표시값
+
 };
 
 export interface CallInfo {

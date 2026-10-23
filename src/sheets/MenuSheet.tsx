@@ -1,6 +1,7 @@
 import { DRIVER } from "../data";
 import { Layer } from "../components/Layer";
 import { useApp } from "../AppContext";
+import { addHours } from "../util";
 
 interface Props {
   trips: number;
@@ -34,7 +35,7 @@ export function MenuSheet({ trips, startedAt, working, onClose, onNotice, onRepo
         </div>
         <div className="row">
           <span>근무 종료 예정</span>
-          <span className="v">{DRIVER.endTime} · 회사 연동</span>
+          <span className="v">{startedAt ? addHours(startedAt, DRIVER.workHours) : DRIVER.endTime} · 회사 연동</span>
         </div>
         <button
           className="row"

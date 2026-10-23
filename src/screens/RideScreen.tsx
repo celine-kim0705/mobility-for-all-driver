@@ -157,7 +157,7 @@ export function RideScreen({ onArrived }: { onArrived: () => void }) {
               </button>
             ))}
           </div>
-          <span className={`ride-note${near || done ? " on" : ""}`}>{stateText}</span>
+          <span className="ride-note">{stateText}</span>
         </div>
         {showPhone && <div className="phone">안심번호 {CALL.phone} (예시) · 정차 중에만 걸어 주세요</div>}
         <div className="nr-btns">

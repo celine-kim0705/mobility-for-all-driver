@@ -26,26 +26,29 @@ export function DropScreen({ nav, onFinish }: { nav: NavProps; onFinish: (issue:
   const stepsDone = idx >= DROP_STEPS.length;
   useTimeout(() => setNextLabel(true), stepsDone ? TIMING.nextLabelDelay : null);
 
-  // 결제: 데모는 절반 확률로 실패
+  // 결제: 하차 확인이 끝나면(하차했어요) 3초 로딩 후 결과. 데모는 절반 확률로 실패
   const [pay, setPay] = useState<Pay>("loading");
   const [payNote, setPayNote] = useState("자동으로 결제됩니다");
   const [failReason, setFailReason] = useState("");
   const [method, setMethod] = useState("앱카드 결제");
   useMount(() => speak(`하차 지원을 시작해요. 앱카드로 ${FARE.amount}원을 결제하고 있어요`));
-  useTimeout(() => {
-    if (Math.random() < 0.5) {
-      const why = pick(PAY_FAIL_REASONS);
-      setPay("fail");
-      setFailReason(why);
-      setPayNote("자동 결제가 안 됐어요");
-      speak(`앱카드 결제가 실패했어요. ${why}. 직접 결제를 받아 주세요`);
-      vibrate([200, 100, 200]);
-    } else {
-      setPay("ok");
-      setPayNote(`${hm()} 결제됐어요`);
-      speak("결제가 완료됐어요");
-    }
-  }, TIMING.payResult);
+  useTimeout(
+    () => {
+      if (Math.random() < 0.5) {
+        const why = pick(PAY_FAIL_REASONS);
+        setPay("fail");
+        setFailReason(why);
+        setPayNote("자동 결제가 안 됐어요");
+        speak(`앱카드 결제가 실패했어요. ${why}. 직접 결제를 받아 주세요`);
+        vibrate([200, 100, 200]);
+      } else {
+        setPay("ok");
+        setPayNote(`${hm()} 결제됐어요`);
+        speak("결제가 완료됐어요");
+      }
+    },
+    stepsDone ? TIMING.payResult : null,
+  );
 
   const startDirect = () => {
     setPay("direct");
