@@ -206,7 +206,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);ou
 .ck-list.sm .d{font-size:14px}
 .ck-list.sm .ck-text{gap:2px}
 .ck-list.sm .ck-step.now .ck-dot::after{width:10px;height:10px}
-.dp-fare{margin-top:16px;background:var(--sheet);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.dp-fare{margin-top:16px;background:var(--sheet);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;animation:up .25s ease-out}
 .dp-fare .k{font-size:17px;font-weight:500;color:var(--muted)}
 .dp-fare .amt{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
 .dp-fare .pay-row{margin-top:4px}

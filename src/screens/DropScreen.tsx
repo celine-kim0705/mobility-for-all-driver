@@ -140,6 +140,7 @@ export function DropScreen({ nav, onFinish }: { nav: NavProps; onFinish: (issue:
       <div className="dp-body">
         <StepList steps={DROP_STEPS} index={idx} small />
 
+        {stepsDone && (
         <div className="dp-fare">
           <span className="k">결제 금액 · {TIMING.ride.km}km</span>
           <span className="amt">{FARE.label}</span>
@@ -168,6 +169,7 @@ export function DropScreen({ nav, onFinish }: { nav: NavProps; onFinish: (issue:
             </div>
           )}
         </div>
+        )}
 
         <span className="dp-q">타는 데 문제 있었나요?</span>
         <div className="dp-chips" role="radiogroup" aria-label="타는 데 문제">
